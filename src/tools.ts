@@ -1,0 +1,56 @@
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
+
+const MOCK_DOCS = [
+  "To reset your password, go to Settings > Security > Reset Password.",
+  "If the app crashes after login, try clearing your browser cache.",
+  "Billing issues for Enterprise users are treated as critical priority.",
+  "To enable Dark Mode, click on your profile avatar and toggle the 'Moon' icon.",
+  "Refunds are only processed if requested within 21 days of the transaction date."
+];
+
+export const searchDocs = tool(
+  async ({ query }) => {
+    console.log(`\n🔎 [TOOL CALL] Searching docs for: "${query}"`);
+    return MOCK_DOCS.join("\n");
+  },
+  {
+    name: "searchDocs",
+    description: "Always use this first. Searches documentation for answers.",
+    schema: z.object({
+      query: z.string().describe("The search query string."),
+    }),
+  }
+);
+
+export const createTicket = tool(
+  async ({ title, priority }) => {
+    console.log(`\n🎫 [TOOL CALL] Creating ticket: "${title}" (Priority: ${priority})`);
+    return `Ticket created: TICKET-${Math.floor(Math.random() * 10000)}`;
+  },
+  {
+    name: "createTicket",
+    description: "Creates a support ticket. REQUIRED: You must provide 'title' and 'priority'.",
+    schema: z.object({
+      title: z.string().describe("The summary of the issue."), // Explicit description
+      priority: z.enum(["low", "medium", "high"]).describe("The priority level."),
+    }),
+  }
+);
+
+export const getUserContext = tool(
+  async ({ userId }) => {
+    console.log(`\n👤 [TOOL CALL] Fetching context for user: ${userId}`);
+    if (userId === "user_vip") {
+      return JSON.stringify({ plan: "Enterprise", role: "Admin" });
+    }
+    return JSON.stringify({ plan: "Free", role: "User" });
+  },
+  {
+    name: "getUserContext",
+    description: "Get user details (plan/role) to determine ticket priority.",
+    schema: z.object({
+      userId: z.string().describe("The user ID."),
+    }),
+  }
+);
