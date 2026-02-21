@@ -71,6 +71,13 @@ To keep the submission simple and runnable without Docker, I stored chat history
 
 ---
 
+## 📸 Screenshots
+
+![Terminal Screenshot](Screenshot.png)
+
+
+---
+
 ## 🧪 Things to Try
 
 When you run the app, try these scenarios to see the logic kick in:
@@ -87,4 +94,4 @@ Login as Option 2 (Regular) and say the exact same thing: *"I have a billing iss
 
 Enjoy the code!
 
-*Submitted By: Muhammad Yoonus*
+*Made with ❤️ by Yoonus*
