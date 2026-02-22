@@ -28,8 +28,8 @@ const prompt = ChatPromptTemplate.fromMessages([
     
     TICKET CREATION RULES:
     - You MUST call "getUserContext" first to check the user's plan.
-    - Enterprise = "high" priority.
-    - Free = "low" or "medium".
+    - Pro = "high" priority.
+    - Free = "medium" priority.
     
     Current User ID: {userId}`,
   ],

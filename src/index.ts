@@ -11,13 +11,13 @@ async function main() {
   const agentExecutor = await createSupportAgent();
 
   console.log("\n--- Login ---");
-  console.log("1. VIP User (Enterprise Plan)");
+  console.log("1. Pro User (Pro Plan)");
   console.log("2. Regular User (Free Plan)");
   
   rl.question("\nSelect user (1 or 2): ", (choice) => {
-    // Logic: If they type '2', be 'user_regular', otherwise default to 'user_vip'
-    const CURRENT_USER_ID = choice.trim() === "2" ? "user_regular" : "user_vip";
-    const PLAN = CURRENT_USER_ID === "user_vip" ? "Enterprise" : "Free";
+    // Logic: If they type '2', be 'user_regular', otherwise default to 'user_pro'
+    const CURRENT_USER_ID = choice.trim() === "2" ? "user_regular" : "user_pro";
+    const PLAN = CURRENT_USER_ID === "user_pro" ? "Pro" : "Free";
 
     console.log("\n=================================================");
     console.log("🤖 AI Support Agent (Powered by Groq/Llama3)");
