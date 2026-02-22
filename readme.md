@@ -1,11 +1,17 @@
 # AI Support Agent: Policy Aware Support Assistant (LangChain + Groq)
 
-A small “production-style” AI support assistant that demonstrates **tool-using agent behavior**:
+A small "production-style" AI support assistant that demonstrates **tool-using agent behavior**:
 - **Searches internal docs** to answer common questions (deflection)
 - **Fetches user context** (e.g., plan / VIP) to personalize behavior
-- **Creates a support ticket** only when needed (escalation)
+- **Creates a support ticket** when needed (escalation)
 
-Built as a **backend API + web chat UI**, so it demos like a real product—not a notebook.
+Built as a **backend API + web chat UI**, so it demos like a real product.
+
+---
+
+## Screenshot
+
+![AI Support Agent UI](./Screenshot.png)
 
 ---
 
@@ -27,27 +33,31 @@ Built as a **backend API + web chat UI**, so it demos like a real product—not 
 
 Typical flow per user message:
 1. User sends a message via the web UI
-2. Backend agent runs tools in sequence:
+2. Backend agent runs tools in sequence (depending on the request):
    - `searchDocs` (attempt to answer from docs)
    - `getUserContext` (plan / VIP context)
    - `createTicket` (escalation when needed)
 3. Backend returns the final assistant response to the UI
 
-Roadmap includes: streaming responses, live tool traces, citations, Docker compose.
+Roadmap includes: streaming responses, live tool traces, citations.
 
 ---
 
 ## Repo Structure
 
+```
 .
-├── AI_Support_Agent/         # Backend (agent + API server)
+├── src/                       # Backend source (agent + API server)
+├── package.json               # Backend deps/scripts
+├── Dockerfile                 # Backend Dockerfile
+├── docker-compose.yml         # Local Docker compose
+├── .env.example               # Backend env template (safe to commit)
+├── web/                       # Frontend (Next.js UI)
 │   ├── src/
 │   ├── package.json
-│   └── .env.example
-└── web/                      # Frontend (Next.js UI)
-    ├── src/
-    ├── package.json
-    └── .env.example
+│   └── Dockerfile
+└── Screenshot.png             # UI screenshot used in README (optional)
+```
 
 ---
 
@@ -55,56 +65,89 @@ Roadmap includes: streaming responses, live tool traces, citations, Docker compo
 
 - Node.js 18+ (recommended: Node 20)
 - npm (or pnpm/yarn)
+- Groq API key
 
 ---
 
-## Setup & Run (Local)
+## Setup & Run (Local Dev)
 
 ### 1) Backend (API)
 
-Open a terminal:
+From repo root:
 
-cd AI_Support_Agent
+```bash
 npm install
+```
 
-Create an env file:
+Create your env file:
 
+```bash
 cp .env.example .env
+```
 
-Edit AI_Support_Agent/.env:
+Edit `.env` and set your key:
 
+```env
 GROQ_API_KEY=your_key_here
 PORT=3001
 WEB_ORIGIN=http://localhost:3000
+```
 
 Run the API:
 
+```bash
 npm run dev:api
+```
 
 Health check:
 
+```bash
 curl http://localhost:3001/health
+```
 
 Expected:
 
+```json
 { "ok": true }
+```
 
 ---
 
 ### 2) Frontend (Web UI)
 
-Open a new terminal:
+In a new terminal:
 
+```bash
 cd web
 npm install
+```
 
-Create web/.env.local:
+Create `web/.env.local`:
 
-NEXT_PUBLIC_API_URL=http://localhost:3001/api/chat
+```env
+BACKEND_URL=http://localhost:3001/api/chat
+```
 
 Run the frontend:
 
+```bash
 npm run dev
+```
+
+Open:
+- UI: http://localhost:3000
+- API: http://localhost:3001/health
+
+---
+
+## Run with Docker (Optional)
+
+1. Ensure you have a `.env` in the repo root (contains `GROQ_API_KEY=...`).
+2. From repo root:
+
+```bash
+docker compose up --build
+```
 
 Open:
 - UI: http://localhost:3000
@@ -118,47 +161,52 @@ Open:
 
 Request body:
 
+```json
 {
   "message": "How do I reset my password?",
   "userId": "user_regular"
 }
+```
 
 Response:
 
+```json
 {
   "output": "..."
 }
+```
 
 ---
 
 ## Security & Secrets
 
-Do NOT commit .env files.
+Do **NOT** commit `.env` files.
 
-Recommended setup:
-- Backend secrets live in: AI_Support_Agent/.env
-- Frontend env lives in: web/.env.local
-- Commit only: .env.example files
+Recommended:
+- Commit `.env.example` to document required variables
+- Keep `.env` local only (ignored by git)
+- `web/.env.local` should also stay local (ignored by git)
 
-Important:
-- Frontend env vars prefixed with NEXT_PUBLIC_ are not secrets (they are exposed to the browser).
-- Keep GROQ_API_KEY only on the backend.
+Suggested `.gitignore` entries:
 
-Suggested .gitignore rules:
-
+```gitignore
 .env
 .env.*
 !.env.example
+
 web/.env.local
+```
+
+> **Important:** Any variable prefixed with `NEXT_PUBLIC_` is exposed to the browser. Keep `GROQ_API_KEY` on the backend only.
 
 ---
 
 ## Roadmap
 
-- Stream responses (SSE) + show live tool traces in the UI
-- Stronger “policy as code” guardrails (prevent unnecessary ticket creation)
-- Replace basic docs search with real RAG (embeddings + vector store)
-- Docker Compose for one-command startup
+- [ ] Streaming responses (SSE)
+- [ ] Live tool traces in the UI (docs lookup → user context → ticket escalation)
+- [ ] Stronger "policy as code" guardrails
+- [ ] Replace basic docs lookup with real RAG (embeddings + vector store)
 
 ---
 
