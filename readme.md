@@ -178,28 +178,6 @@ Response:
 
 ---
 
-## Security & Secrets
-
-Do **NOT** commit `.env` files.
-
-Recommended:
-- Commit `.env.example` to document required variables
-- Keep `.env` local only (ignored by git)
-- `web/.env.local` should also stay local (ignored by git)
-
-Suggested `.gitignore` entries:
-
-```gitignore
-.env
-.env.*
-!.env.example
-
-web/.env.local
-```
-
-> **Important:** Any variable prefixed with `NEXT_PUBLIC_` is exposed to the browser. Keep `GROQ_API_KEY` on the backend only.
-
----
 
 ## Roadmap
 
