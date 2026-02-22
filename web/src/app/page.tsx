@@ -29,10 +29,18 @@ export default function Page() {
         body: JSON.stringify({ message: text, userId }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? "Request failed");
+      const raw = await res.text();
 
-      setMessages((m) => [...m, { role: "assistant", content: data.output }]);
+      // Robust parse: if server returns HTML (404 etc), show it nicely
+      let data: any = null;
+      try {
+        data = raw ? JSON.parse(raw) : null;
+      } catch {
+        throw new Error(`Non-JSON response (${res.status}). First 120 chars: ${raw.slice(0, 120)}`);
+      }
+
+      if (!res.ok) throw new Error(data?.error ?? `Request failed (${res.status})`);
+      setMessages((m) => [...m, { role: "assistant", content: data.output ?? "(no output)" }]);
     } catch (e: any) {
       setMessages((m) => [...m, { role: "assistant", content: `⚠️ ${e.message}` }]);
     } finally {
@@ -108,7 +116,7 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Side panel: recruiter-friendly “observability” placeholder */}
+          {/* Side panel */}
           <div className="rounded-xl bg-neutral-900/40 ring-1 ring-neutral-800 p-4">
             <h2 className="text-sm font-semibold text-neutral-200">Trace (next)</h2>
             <p className="mt-2 text-sm text-neutral-400">
@@ -116,7 +124,7 @@ export default function Page() {
               <span className="text-neutral-300">searchDocs → getUserContext → createTicket</span>
             </p>
             <div className="mt-4 rounded-lg bg-neutral-950 p-3 ring-1 ring-neutral-800 text-xs text-neutral-400">
-              Next step: stream LangChain events from the API via SSE and render them here.
+              Next: stream LangChain events from the API via SSE and render them here.
             </div>
           </div>
         </div>
