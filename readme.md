@@ -1,6 +1,6 @@
 # Intro
 
-Hi! This repo contains the code for a lightweight AI Agent that can handle basic customer service support, as well as raising a ticket if it thinks it need to escalate the matter further based on the urgency of the situation and whether or not the user is on a free or a vip plan.
+Hi! This repo contains the code for a lightweight AI Agent that can handle basic customer service support, as well as raising a ticket if it thinks it need to escalate the matter further based on the urgency of the situation and whether or not the user is on a Free or Pro plan.
 
 A 70B parameter Llama 3 LLM was chosen as a suitable node for this agent. It's hosted by Grok Console, which provides free API Access. You can use any other node of your choice as well to run the agent.
 
@@ -67,7 +67,7 @@ Groq Console was the perfect middle ground. It gives me a powerful 70b parameter
 I didn't want the agent to crash if the LLM made up a parameter. I wrapped every tool in a Zod schema. If the model tries to send a "criticality" field instead of "priority", the validation layer catches it before it breaks anything.
 
 **3. In-Memory History**
-To keep the submission simple and runnable without Docker, I stored chat history in memory. In a real production app, I'd swap `AgentExecutor` for LangGraph and use Redis to save user sessions.
+To keep the task simple and runnable without Docker, I stored chat history in memory. In a real production app, I'd swap `AgentExecutor` for LangGraph and use Redis to save user sessions.
 
 ---
 
@@ -85,12 +85,12 @@ When you run the app, try these scenarios to see the logic kick in:
 * **Test the "Deflection":**
 Ask: *"How do I switch to dark mode?"*
 (It should answer you directly and not open a ticket.)
-* **Test the "VIP" Logic:**
-Login as Option 1 (VIP) and say: *"I have a billing issue and it's urgent."*
-(It should see you are Enterprise and force a High priority ticket.)
+* **Test the "Pro" Logic:**
+Login as Option 1 (Pro) and say: *"I have a billing issue and it's urgent."*
+(It should see you are Pro and force a High priority ticket.)
 * **Test the "Policy" Logic:**
 Login as Option 2 (Regular) and say the exact same thing: *"I have a billing issue and it's urgent."*
-(It should see you are on the Free plan and create a Medium/Low ticket, ignoring your request for urgent priority.)
+(It should see you are on the Free plan and create a Medium ticket, ignoring your request for urgent priority.)
 
 Enjoy the code!
 

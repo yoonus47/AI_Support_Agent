@@ -4,15 +4,43 @@ import { z } from "zod";
 const MOCK_DOCS = [
   "To reset your password, go to Settings > Security > Reset Password.",
   "If the app crashes after login, try clearing your browser cache.",
-  "Billing issues for Enterprise users are treated as critical priority.",
+  "Billing issues for Pro users are treated as high priority.",
+  "Billing issues for Free users are treated as medium priority.",
   "To enable Dark Mode, click on your profile avatar and toggle the 'Moon' icon.",
   "Refunds are only processed if requested within 21 days of the transaction date."
 ];
 
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((token) => token.length > 1);
+}
+
 export const searchDocs = tool(
   async ({ query }) => {
     console.log(`\n🔎 [TOOL CALL] Searching docs for: "${query}"`);
-    return MOCK_DOCS.join("\n");
+
+    const queryTokens = new Set(tokenize(query));
+    const scoredDocs = MOCK_DOCS.map((doc) => {
+      const docTokens = tokenize(doc);
+      const score = docTokens.reduce((acc, token) => {
+        return queryTokens.has(token) ? acc + 1 : acc;
+      }, 0);
+
+      return { doc, score };
+    })
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((item) => item.doc);
+
+    if (scoredDocs.length === 0) {
+      return "No relevant documentation snippets found.";
+    }
+
+    return scoredDocs.join("\n");
   },
   {
     name: "searchDocs",
@@ -33,7 +61,7 @@ export const createTicket = tool(
     description: "Creates a support ticket. REQUIRED: You must provide 'title' and 'priority'.",
     schema: z.object({
       title: z.string().describe("The summary of the issue."), // Explicit description
-      priority: z.enum(["low", "medium", "high"]).describe("The priority level."),
+      priority: z.enum(["medium", "high"]).describe("The priority level."),
     }),
   }
 );
@@ -41,8 +69,8 @@ export const createTicket = tool(
 export const getUserContext = tool(
   async ({ userId }) => {
     console.log(`\n👤 [TOOL CALL] Fetching context for user: ${userId}`);
-    if (userId === "user_vip") {
-      return JSON.stringify({ plan: "Enterprise", role: "Admin" });
+    if (userId === "user_pro") {
+      return JSON.stringify({ plan: "Pro", role: "Admin" });
     }
     return JSON.stringify({ plan: "Free", role: "User" });
   },
