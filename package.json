@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:cli": "npx tsx src/index.ts",
+    "dev:api": "npx tsx src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -13,12 +15,15 @@
   "devDependencies": {
     "@types/node": "^25.2.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "@langchain/core": "^0.2.30",
     "@langchain/groq": "^0.1.2",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "langchain": "^0.2.17",
     "zod": "^4.3.6"
   }

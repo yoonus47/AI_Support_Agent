@@ -82,13 +82,13 @@ To keep the task simple and runnable without Docker, I stored chat history in me
 
 When you run the app, try these scenarios to see the logic kick in:
 
-* **Test the "Deflection":**
+* **Test the Deflection:**
 Ask: *"How do I switch to dark mode?"*
 (It should answer you directly and not open a ticket.)
-* **Test the "Pro" Logic:**
+* **Test the Pro Logic:**
 Login as Option 1 (Pro) and say: *"I have a billing issue and it's urgent."*
 (It should see you are Pro and force a High priority ticket.)
-* **Test the "Policy" Logic:**
+* **Test the Policy Logic:**
 Login as Option 2 (Regular) and say the exact same thing: *"I have a billing issue and it's urgent."*
 (It should see you are on the Free plan and create a Medium ticket, ignoring your request for urgent priority.)
 
