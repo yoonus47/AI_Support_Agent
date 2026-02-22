@@ -1,97 +1,167 @@
-# Intro
+# AI Support Agent: Policy Aware Support Assistant (LangChain + Groq)
 
-Hi! This repo contains the code for a lightweight AI Agent that can handle basic customer service support, as well as raising a ticket if it thinks it need to escalate the matter further based on the urgency of the situation and whether or not the user is on a Free or Pro plan.
+A small “production-style” AI support assistant that demonstrates **tool-using agent behavior**:
+- **Searches internal docs** to answer common questions (deflection)
+- **Fetches user context** (e.g., plan / VIP) to personalize behavior
+- **Creates a support ticket** only when needed (escalation)
 
-A 70B parameter Llama 3 LLM was chosen as a suitable node for this agent. It's hosted by Grok Console, which provides free API Access. You can use any other node of your choice as well to run the agent.
-
-I built a Node.js & LangChain agent that acts as a first-line support rep. Instead of a linear script, the agent uses an LLM (Grok API here) as a reasoning engine (Router) to determine the next step based on a standard operating procedure.
-
-## 🛠 How to Run This
-
-Since you have the zip file, here is how to get it running on your machine:
-
-1. **Unzip the folder** and open it in your terminal.
-2. **Install dependencies:**
-   ```bash
-        npm install
-    ```
-
-3. **Set up the API Key:**
-Create a file named `.env` in the root folder and add a Groq API key (it's free and fast). I used Groq instead of OpenAI & Claude for reducing costs (They do have have a free tier), but the logic is the same. Another approach is that we couldve used a lightweight LLM and run it locally but that would've compromised latency & accuracy.
-    ```env
-        GROQ_API_KEY=gsk_your_key_here
-    ```
-
-
-4. **Run the Agent:**
-I included a small interactive menu so you can test as different users.
-    ```bash
-        npx tsx src/index.ts
-    ```
-
+Built as a **backend API + web chat UI**, so it demos like a real product—not a notebook.
 
 ---
 
-## 🏗 How I Built It (Architecture)
+## Tech Stack
 
+**Backend**
+- Node.js + TypeScript
+- LangChain agent + tool calling
+- Groq LLM API
+- Express API server
 
-![DFD Screenshot](arch.png)
-
-**The Stack:**
-
-* **Brain:** Llama 3.3 (via Groq).
-* **Validation:** Zod.
-* **Runtime:** Node.js + LangChain.
-
-### Key Logic Flow
-
-1. **Search Docs First:** The agent always tries to answer from the `mockDocs` first.
-2. **Verify Context:** If it looks like a ticket is needed, it *must* check `getUserContext` first.
-3. **Action:** It only opens a ticket if the docs failed and it knows the user's priority level.
+**Frontend**
+- Next.js (App Router) + TypeScript
+- TailwindCSS
 
 ---
 
-## 💭 Decisions & Trade-offs
+## Architecture (High Level)
 
-Here is why I made certain choices during the 6-hour window:
+Typical flow per user message:
+1. User sends a message via the web UI
+2. Backend agent runs tools in sequence:
+   - `searchDocs` (attempt to answer from docs)
+   - `getUserContext` (plan / VIP context)
+   - `createTicket` (escalation when needed)
+3. Backend returns the final assistant response to the UI
 
-**1. Model Selection: Groq (Llama 3) vs. The Others I went with Llama 3.3 (via Groq) for this challenge.**
-
-- Why not OpenAI or Claude? For many internal tools, keeping the API bill low could be a huge priority for clients.
-
-- Why not Local/Self-Hosted? I also considered running a lightweight, quantized model (like a GGUF) locally or on a small AWS instance. The problem there is the trade-off between accuracy and latency.
-
-Groq Console was the perfect middle ground. It gives me a powerful 70b parameter model that runs instantly (simulating a real production feel) and their free testing API allowed me to build this without incurring any costs was wonderful.
-
-**2. Strict Zod Schemas**
-I didn't want the agent to crash if the LLM made up a parameter. I wrapped every tool in a Zod schema. If the model tries to send a "criticality" field instead of "priority", the validation layer catches it before it breaks anything.
-
-**3. In-Memory History**
-To keep the task simple and runnable without Docker, I stored chat history in memory. In a real production app, I'd swap `AgentExecutor` for LangGraph and use Redis to save user sessions.
+Roadmap includes: streaming responses, live tool traces, citations, Docker compose.
 
 ---
 
-## 📸 Screenshots
+## Repo Structure
 
-![Terminal Screenshot](Screenshot.png)
-
+.
+├── AI_Support_Agent/         # Backend (agent + API server)
+│   ├── src/
+│   ├── package.json
+│   └── .env.example
+└── web/                      # Frontend (Next.js UI)
+    ├── src/
+    ├── package.json
+    └── .env.example
 
 ---
 
-## 🧪 Things to Try
+## Prerequisites
 
-When you run the app, try these scenarios to see the logic kick in:
+- Node.js 18+ (recommended: Node 20)
+- npm (or pnpm/yarn)
 
-* **Test the Deflection:**
-Ask: *"How do I switch to dark mode?"*
-(It should answer you directly and not open a ticket.)
-* **Test the Pro Logic:**
-Login as Option 1 (Pro) and say: *"I have a billing issue and it's urgent."*
-(It should see you are Pro and force a High priority ticket.)
-* **Test the Policy Logic:**
-Login as Option 2 (Regular) and say the exact same thing: *"I have a billing issue and it's urgent."*
-(It should see you are on the Free plan and create a Medium ticket, ignoring your request for urgent priority.)
+---
 
-Enjoy the code!
+## Setup & Run (Local)
 
-*Made with ❤️ by Yoonus*
+### 1) Backend (API)
+
+Open a terminal:
+
+cd AI_Support_Agent
+npm install
+
+Create an env file:
+
+cp .env.example .env
+
+Edit AI_Support_Agent/.env:
+
+GROQ_API_KEY=your_key_here
+PORT=3001
+WEB_ORIGIN=http://localhost:3000
+
+Run the API:
+
+npm run dev:api
+
+Health check:
+
+curl http://localhost:3001/health
+
+Expected:
+
+{ "ok": true }
+
+---
+
+### 2) Frontend (Web UI)
+
+Open a new terminal:
+
+cd web
+npm install
+
+Create web/.env.local:
+
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/chat
+
+Run the frontend:
+
+npm run dev
+
+Open:
+- UI: http://localhost:3000
+- API: http://localhost:3001/health
+
+---
+
+## API
+
+### POST /api/chat
+
+Request body:
+
+{
+  "message": "How do I reset my password?",
+  "userId": "user_regular"
+}
+
+Response:
+
+{
+  "output": "..."
+}
+
+---
+
+## Security & Secrets
+
+Do NOT commit .env files.
+
+Recommended setup:
+- Backend secrets live in: AI_Support_Agent/.env
+- Frontend env lives in: web/.env.local
+- Commit only: .env.example files
+
+Important:
+- Frontend env vars prefixed with NEXT_PUBLIC_ are not secrets (they are exposed to the browser).
+- Keep GROQ_API_KEY only on the backend.
+
+Suggested .gitignore rules:
+
+.env
+.env.*
+!.env.example
+web/.env.local
+
+---
+
+## Roadmap
+
+- Stream responses (SSE) + show live tool traces in the UI
+- Stronger “policy as code” guardrails (prevent unnecessary ticket creation)
+- Replace basic docs search with real RAG (embeddings + vector store)
+- Docker Compose for one-command startup
+
+---
+
+## License
+
+MIT
