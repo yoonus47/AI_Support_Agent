@@ -1,0 +1,21 @@
+services:
+  api:
+    build:
+      context: .
+    env_file:
+      - ./.env
+    environment:
+      - PORT=3001
+      - WEB_ORIGIN=http://localhost:3000
+    ports:
+      - "3001:3001"
+
+  web:
+    build:
+      context: ./web
+    environment:
+      - BACKEND_URL=http://api:3001/api/chat
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
