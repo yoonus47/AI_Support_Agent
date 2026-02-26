@@ -56,7 +56,7 @@ Roadmap includes: streaming responses, live tool traces, citations.
 │   ├── src/
 │   ├── package.json
 │   └── Dockerfile
-└── Screenshot.png             # UI screenshot used in README (optional)
+└── Screenshot.png             # UI screenshot used in README
 ```
 
 ---
@@ -140,7 +140,7 @@ Open:
 
 ---
 
-## Run with Docker (Optional)
+## Run with Docker (Recommended)
 
 1. Ensure you have a `.env` in the repo root (contains `GROQ_API_KEY=...`).
 2. From repo root:
@@ -155,28 +155,6 @@ Open:
 
 ---
 
-## API
-
-### POST /api/chat
-
-Request body:
-
-```json
-{
-  "message": "How do I reset my password?",
-  "userId": "user_regular"
-}
-```
-
-Response:
-
-```json
-{
-  "output": "..."
-}
-```
-
----
 
 
 ## Roadmap
