@@ -6,6 +6,35 @@ import { createSupportAgent } from "./agent";
 const PORT = Number(process.env.PORT ?? 3001);
 const WEB_ORIGIN = process.env.WEB_ORIGIN ?? "http://localhost:3000";
 
+function getChunkText(content: unknown): string {
+  if (typeof content === "string") return content;
+
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === "string") return part;
+        if (part && typeof part === "object" && "text" in part) {
+          const text = (part as { text?: unknown }).text;
+          return typeof text === "string" ? text : "";
+        }
+        return "";
+      })
+      .join("");
+  }
+
+  return "";
+}
+
+function getFinalOutputFromChainEvent(data: unknown): string {
+  if (!data || typeof data !== "object") return "";
+
+  const chainData = data as { output?: unknown };
+  if (!chainData.output || typeof chainData.output !== "object") return "";
+
+  const outputObj = chainData.output as { output?: unknown };
+  return typeof outputObj.output === "string" ? outputObj.output : "";
+}
+
 async function main() {
   const app = express();
   app.use(cors({ origin: WEB_ORIGIN }));
@@ -47,7 +76,8 @@ async function main() {
 
     try {
       let finalOutput = "";
-
+      let streamedText = "";
+      
       const eventStream = agentExecutor.streamEvents(
         { input: message, userId },
         { version: "v1" }
@@ -69,21 +99,31 @@ async function main() {
         }
 
         if (event.event === "on_chat_model_stream") {
-          const chunk = event.data?.chunk?.content;
-          if (typeof chunk === "string" && chunk.length > 0) {
-            sendEvent("token", { text: chunk });
+          const chunkText = getChunkText(event.data?.chunk?.content);
+          if (chunkText) {
+            streamedText += chunkText;
+            sendEvent("token", { text: chunkText });
           }
         }
 
-        if (event.event === "on_chain_end" && event.name === "AgentExecutor") {
-          const output = event.data?.output?.output;
-          if (typeof output === "string") {
+        if (event.event === "on_chain_end") {
+          const output = getFinalOutputFromChainEvent(event.data);
+          if (output) {
             finalOutput = output;
           }
         }
       }
 
-      sendEvent("final", { output: finalOutput });
+      if (!finalOutput.trim()) {
+        finalOutput = streamedText.trim();
+      }
+
+      if (!finalOutput.trim()) {
+        const fallback = await agentExecutor.invoke({ input: message, userId });
+        finalOutput = String(fallback?.output ?? "").trim();
+      }
+
+      sendEvent("final", { output: finalOutput || "(no output)" });
       sendEvent("done", { ok: true });
     } catch (e: any) {
       sendEvent("error", { error: e?.message ?? "unknown error" });
