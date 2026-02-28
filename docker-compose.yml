@@ -15,6 +15,7 @@ services:
       context: ./web
     environment:
       - BACKEND_URL=http://api:3001/api/chat
+      - BACKEND_STREAM_URL=http://api:3001/api/chat/stream
     ports:
       - "3000:3000"
     depends_on:
