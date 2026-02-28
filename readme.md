@@ -39,7 +39,9 @@ Typical flow per user message:
    - `createTicket` (escalation when needed)
 3. Backend returns the final assistant response to the UI
 
-Roadmap includes: streaming responses, live tool traces, citations.
+Roadmap includes: citations and stronger guardrails.
+
+✅ Implemented: streaming responses (SSE) and live tool traces in the UI.
 
 ---
 
@@ -126,6 +128,8 @@ Create `web/.env.local`:
 
 ```env
 BACKEND_URL=http://localhost:3001/api/chat
+# Optional: if omitted, stream URL is derived from BACKEND_URL
+BACKEND_STREAM_URL=http://localhost:3001/api/chat/stream
 ```
 
 Run the frontend:
@@ -159,8 +163,8 @@ Open:
 
 ## Roadmap
 
-- [ ] Streaming responses (SSE)
-- [ ] Live tool traces in the UI (docs lookup → user context → ticket escalation)
+- [x] Streaming responses (SSE)
+- [x] Live tool traces in the UI (docs lookup → user context → ticket escalation)
 - [ ] Stronger "policy as code" guardrails
 - [ ] Replace basic docs lookup with real RAG (embeddings + vector store)
 
