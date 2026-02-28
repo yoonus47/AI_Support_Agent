@@ -30,6 +30,68 @@ async function main() {
     }
   });
 
+  app.post("/api/chat/stream", async (req, res) => {
+    const message = String(req.body?.message ?? "");
+    const userId = String(req.body?.userId ?? "user_regular");
+
+    if (!message.trim()) return res.status(400).json({ error: "message required" });
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+
+    const sendEvent = (event: string, data: unknown) => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      let finalOutput = "";
+
+      const eventStream = agentExecutor.streamEvents(
+        { input: message, userId },
+        { version: "v1" }
+      );
+
+      for await (const event of eventStream) {
+        if (event.event === "on_tool_start") {
+          sendEvent("tool_start", {
+            name: event.name,
+            input: event.data?.input,
+          });
+        }
+
+        if (event.event === "on_tool_end") {
+          sendEvent("tool_end", {
+            name: event.name,
+            output: event.data?.output,
+          });
+        }
+
+        if (event.event === "on_chat_model_stream") {
+          const chunk = event.data?.chunk?.content;
+          if (typeof chunk === "string" && chunk.length > 0) {
+            sendEvent("token", { text: chunk });
+          }
+        }
+
+        if (event.event === "on_chain_end" && event.name === "AgentExecutor") {
+          const output = event.data?.output?.output;
+          if (typeof output === "string") {
+            finalOutput = output;
+          }
+        }
+      }
+
+      sendEvent("final", { output: finalOutput });
+      sendEvent("done", { ok: true });
+    } catch (e: any) {
+      sendEvent("error", { error: e?.message ?? "unknown error" });
+    } finally {
+      res.end();
+    }
+  });
+
   app.listen(PORT, () => console.log(`API listening on :${PORT}`));
 }
 
