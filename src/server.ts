@@ -77,7 +77,7 @@ async function main() {
     try {
       let finalOutput = "";
       let streamedText = "";
-
+      
       const eventStream = agentExecutor.streamEvents(
         { input: message, userId },
         { version: "v1" }
