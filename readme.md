@@ -9,9 +9,9 @@ Built as a **backend API + web chat UI**, so it demos like a real product.
 
 ---
 
-## Screenshot
+## Demo
 
-![AI Support Agent UI](./Screenshot.png)
+![AI Support Agent UI](./demo.gif)
 
 ---
 
